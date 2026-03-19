@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 import Navbar from '@/components/navbar';
 import { 
   User, 
@@ -23,6 +25,14 @@ interface Attendee {
 }
 
 export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center">Carregando formulário...</div>}>
+      <CheckoutForm />
+    </Suspense>
+  );
+}
+
+function CheckoutForm() {
   const searchParams = useSearchParams();
   const ticketId = searchParams.get('ticket');
   
