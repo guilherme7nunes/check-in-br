@@ -15,6 +15,13 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+interface Attendee {
+  id: number;
+  name: string;
+  email: string;
+  addons: string[];
+}
+
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const ticketId = searchParams.get('ticket');
@@ -22,7 +29,7 @@ export default function CheckoutPage() {
   // Mock do ingresso selecionado
   const isDouble = ticketId === '2';
   
-  const [attendees, setAttendees] = useState(
+  const [attendees, setAttendees] = useState<Attendee[]>(
     isDouble ? [
       { id: 1, name: '', email: '', addons: [] },
       { id: 2, name: '', email: '', addons: [] }
@@ -39,7 +46,7 @@ export default function CheckoutPage() {
 
   const toggleAddon = (attendeeIndex: number, addonId: string) => {
     const newAttendees = [...attendees];
-    const currentAddons = newAttendees[attendeeIndex].addons as string[];
+    const currentAddons = newAttendees[attendeeIndex].addons;
     
     if (currentAddons.includes(addonId)) {
       newAttendees[attendeeIndex].addons = currentAddons.filter(id => id !== addonId);
@@ -113,13 +120,13 @@ export default function CheckoutPage() {
                           key={addon.id}
                           onClick={() => toggleAddon(index, addon.id)}
                           className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-                            (attendee.addons as string[]).includes(addon.id)
+                            attendee.addons.includes(addon.id)
                             ? 'border-blue-500 bg-blue-50/50'
                             : 'border-gray-100 hover:border-gray-200'
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`p-1.5 rounded-lg ${(attendee.addons as string[]).includes(addon.id) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                            <div className={`p-1.5 rounded-lg ${attendee.addons.includes(addon.id) ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
                               {addon.icon}
                             </div>
                             <span className="text-sm font-medium text-gray-700">{addon.name}</span>
@@ -127,11 +134,11 @@ export default function CheckoutPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-gray-900">+ R$ {addon.price.toFixed(2)}</span>
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                              (attendee.addons as string[]).includes(addon.id)
+                              attendee.addons.includes(addon.id)
                               ? 'bg-blue-600 border-blue-600'
                               : 'border-gray-200'
                             }`}>
-                              {(attendee.addons as string[]).includes(addon.id) && <Check className="h-3 w-3 text-white" />}
+                              {attendee.addons.includes(addon.id) && <Check className="h-3 w-3 text-white" />}
                             </div>
                           </div>
                         </div>
@@ -159,7 +166,7 @@ export default function CheckoutPage() {
                    <div className="pt-3 border-t border-gray-50 space-y-2">
                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Serviços Adicionais</p>
                      {attendees.map((a, i) => (
-                       (a.addons as string[]).map(addonId => {
+                       a.addons.map(addonId => {
                          const addon = addonsList.find(x => x.id === addonId);
                          return (
                            <div key={`${i}-${addonId}`} className="flex justify-between text-xs">
