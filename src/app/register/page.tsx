@@ -43,7 +43,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Erro ao criar conta.');
+        throw new Error(data.error || data.message || 'Erro ao criar conta.');
       }
 
       setSuccess(true);
