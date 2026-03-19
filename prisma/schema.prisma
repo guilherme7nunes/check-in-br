@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  ORGANIZER
+  BUYER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          UserRole  @default(BUYER)
+  stripeAccountId String? // For Organizer's split payment
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  events        Event[]   // If Organizer
+  orders        Order[]   // If Buyer
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String
+  image       String?
+  organizerId String
+  organizer   User     @relation(fields: [organizerId], references: [id])
+  
+  ticketTypes TicketType[]
+  addons      Addon[]
+  orders      Order[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TicketType {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Individual", "Duplo"
+  price       Decimal
+  capacity    Int?
+  isGroup     Boolean  @default(false)
+  groupSize   Int      @default(1)
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id])
+  
+  tickets     Ticket[]
+}
+
+model Addon {
+  id          String   @id @default(cuid())
+  name        String   // e.g., "Jantar Quinta-feira", "Translado Ônibus"
+  price       Decimal
+  category    String   // e.g., "MEAL", "TRANSPORT"
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id])
+  
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  total       Decimal
+  status      String   @default("PENDING") // PENDING, PAID, CANCELLED
+  stripeSessionId String?
+  buyerId     String
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id])
+  
+  tickets     Ticket[]
+  orderItems  OrderItem[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Ticket {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id])
+  ticketTypeId  String
+  ticketType    TicketType @relation(fields: [ticketTypeId], references: [id])
+  
+  attendees     Attendee[]
+}
+
+model Attendee {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  cpf       String?
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  
+  addons    AttendeeAddon[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  addonId   String
+  addon     Addon    @relation(fields: [addonId], references: [id])
+  quantity  Int      @default(1)
+}
+
+// Link specific addons to specific attendees (e.g., Attendee 1 wants Lunch Fri)
+model AttendeeAddon {
+  id          String   @id @default(cuid())
+  attendeeId  String
+  attendee    Attendee @relation(fields: [attendeeId], references: [id])
+  addonId     String
+  // We can relational link or just use the ID for simplicity if shared
+  createdAt   DateTime @default(now())
+}
