@@ -338,7 +338,7 @@ export default function NewEventPage() {
             
             <div className="space-y-6">
               {ticketTypes.map((ticket, index) => (
-                <div key={index} className="p-8 border border-gray-100 rounded-3xl bg-gray-50/10 space-y-8 relative group border-l-8 border-l-blue-500 hover:border-blue-100 transition-all">
+                <div key={index} className="p-8 border border-blue-100 rounded-3xl bg-blue-50/20 space-y-8 relative group border-l-8 border-l-blue-600 hover:border-blue-200 transition-all shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nome do Ingresso</label>
