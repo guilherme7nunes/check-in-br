@@ -38,6 +38,7 @@ model Event {
   date        DateTime
   location    String
   image       String?
+  schedule    String?  // Programação do evento (Markdown ou texto simples)
   organizerId String
   organizer   User     @relation(fields: [organizerId], references: [id])
   

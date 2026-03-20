@@ -25,6 +25,7 @@ export default function NewEventPage() {
     date: '',
     location: '',
     image: '',
+    schedule: '',
   });
 
   const [ticketTypes, setTicketTypes] = useState([
@@ -118,11 +119,43 @@ export default function NewEventPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
                 <textarea
                   rows={4}
-                  placeholder="Descreva seu evento..."
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
+                  placeholder="Descreva seu evento de forma geral..."
+                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium font-sans"
                   value={eventData.description}
                   onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
                 />
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
+                  <span>Capa do Evento</span>
+                  <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full uppercase font-black">Proporção 16:9 (1920x1080)</span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <ImageIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Cole aqui o link da imagem (URL)"
+                    className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
+                    value={eventData.image}
+                    onChange={(e) => setEventData({ ...eventData, image: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                   📅 Programação Completa
+                 </label>
+                 <textarea
+                   rows={6}
+                   placeholder="Liste os horários, palestras e atividades. Isso aparecerá em um botão especial para o usuário."
+                   className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium font-mono text-xs leading-relaxed"
+                   value={eventData.schedule}
+                   onChange={(e) => setEventData({ ...eventData, schedule: e.target.value })}
+                 />
               </div>
             </div>
           </section>
