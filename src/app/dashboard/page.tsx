@@ -70,7 +70,7 @@ export default function DashboardClientPage() {
             </p>
           </div>
           
-          {role === 'BUYER' && (
+          {role === 'USER' && (
             <button 
                onClick={handleBeOrganizer}
                disabled={isUpdating || success}
