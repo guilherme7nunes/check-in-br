@@ -398,14 +398,14 @@ export default function NewEventPage() {
             <div className="flex justify-between items-center pb-4 border-b border-gray-50">
                <div className="flex items-center gap-3">
                 <Utensils className="h-5 w-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Refeições e Transporte</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Adicionais</h2>
               </div>
               <button
                 type="button"
                 onClick={addAddon}
                 className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
-                <Plus className="h-4 w-4" /> Adicionar Serviço
+                <Plus className="h-4 w-4" /> Adicionar Adicional
               </button>
             </div>
             
