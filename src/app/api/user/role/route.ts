@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { role } = body;
 
-    if (!['BUYER', 'ORGANIZER'].includes(role)) {
+    if (!['USER', 'ORGANIZER'].includes(role)) {
        return NextResponse.json({ message: 'Role inválida' }, { status: 400 });
     }
 
