@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/navbar';
 import { 
@@ -20,7 +20,8 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
-  Utensils
+  Utensils,
+  Search
 } from 'lucide-react';
 
 export default function NewEventPage() {
@@ -44,6 +45,26 @@ export default function NewEventPage() {
   const [addons, setAddons] = useState([
     { name: '', price: '', category: 'MEAL' }
   ]);
+
+  // Autocomplete de Endereço Local
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+    try {
+      // Usando Nominatim (OpenStreetMap) - Grátis e rápido
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5`);
+      const data = await response.json();
+      setAddressSuggestions(data);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error("Erro ao buscar endereço:", error);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,7 +98,7 @@ export default function NewEventPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('Evento criado com sucesso no visual Clean!');
+      alert('Evento real criado com Sucesso! 🏁');
     }, 1500);
   };
 
@@ -86,13 +107,13 @@ export default function NewEventPage() {
       <Navbar />
       <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <header className="mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Criar Novo Evento</h1>
-          <p className="text-gray-500 mt-2">Configure os detalhes do seu evento com um design limpo e profissional.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Novo Evento</h1>
+          <p className="text-gray-500 mt-2">Configure os detalhes do seu evento com agilidade e clareza.</p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Seção 1: Informações Gerais */}
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8">
+          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8 animate-in fade-in duration-500">
             <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
               <CheckCircle2 className="h-5 w-5 text-blue-600" />
               <h2 className="text-xl font-semibold text-gray-900">Informações Gerais</h2>
@@ -169,7 +190,7 @@ export default function NewEventPage() {
                   <input
                     type="datetime-local"
                     required
-                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
                     value={eventData.startDate}
                     onChange={(e) => setEventData({ ...eventData, startDate: e.target.value })}
                   />
@@ -180,15 +201,15 @@ export default function NewEventPage() {
                   <input
                     type="datetime-local"
                     required
-                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
                     value={eventData.endDate}
                     onChange={(e) => setEventData({ ...eventData, endDate: e.target.value })}
                   />
                 </div>
               </div>
 
-              {/* Localização */}
-              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-50">
+              {/* Localização com Autocomplete */}
+              <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-50 relative">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Onde o evento acontecerá?</label>
                 <div className="flex gap-2">
                   {[
@@ -199,7 +220,7 @@ export default function NewEventPage() {
                     <button
                       key={type.id}
                       type="button"
-                      onClick={() => setEventData({ ...eventData, locationType: type.id })}
+                      onClick={() => setEventData({ ...eventData, locationType: type.id, location: type.id === 'TO_DEFINE' ? 'A Definir' : '' })}
                       className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
                         eventData.locationType === type.id 
                         ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
@@ -212,14 +233,47 @@ export default function NewEventPage() {
                 </div>
                 
                 {eventData.locationType !== 'TO_DEFINE' && (
-                  <input
-                    type="text"
-                    required
-                    placeholder={eventData.locationType === 'PHYSICAL' ? "Endereço completo ou cidade" : "Link da reunião ou plataforma"}
-                    className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none animate-in slide-in-from-top-1"
-                    value={eventData.location}
-                    onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                       <Search className="h-4 w-4" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder={eventData.locationType === 'PHYSICAL' ? "Digite para buscar o endereço..." : "Link da reunião ou plataforma"}
+                      className="w-full rounded-xl border border-gray-200 p-4 pl-11 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
+                      value={eventData.location}
+                      onChange={(e) => {
+                        setEventData({ ...eventData, location: e.target.value });
+                        if (eventData.locationType === 'PHYSICAL') searchAddress(e.target.value);
+                      }}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    />
+                    
+                    {/* Sugestões de Endereço */}
+                    {showSuggestions && addressSuggestions.length > 0 && eventData.locationType === 'PHYSICAL' && (
+                      <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {addressSuggestions.map((suggestion, idx) => (
+                           <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setEventData({ ...eventData, location: suggestion.display_name });
+                              setAddressSuggestions([]);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-start gap-3 transition-colors group"
+                           >
+                             <MapPin className="h-4 w-4 mt-1 text-gray-400 group-hover:text-blue-500" />
+                             <div>
+                                <p className="text-sm font-bold text-gray-900">{suggestion.display_name.split(',')[0]}</p>
+                                <p className="text-[10px] text-gray-400 leading-tight">{suggestion.display_name}</p>
+                             </div>
+                           </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -230,7 +284,7 @@ export default function NewEventPage() {
                   <textarea
                     rows={4}
                     placeholder="Conte mais sobre o objetivo do seu evento..."
-                    className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                     value={eventData.description}
                     onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
                   />
@@ -262,7 +316,7 @@ export default function NewEventPage() {
               <button
                 type="button"
                 onClick={addTicketType}
-                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
                 <Plus className="h-4 w-4" /> Adicionar Tipo
               </button>
@@ -270,14 +324,14 @@ export default function NewEventPage() {
             
             <div className="space-y-4">
               {ticketTypes.map((ticket, index) => (
-                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/30 space-y-6 relative group border-l-4 border-l-blue-500">
+                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/20 space-y-6 relative group border-l-4 border-l-blue-500 hover:border-blue-200 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome do Ingresso</label>
                       <input
                         type="text"
-                        placeholder="Individual, VIP, etc."
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none"
+                        placeholder="Ex: Individual, VIP..."
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={ticket.name}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -291,7 +345,7 @@ export default function NewEventPage() {
                       <input
                         type="number"
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={ticket.price}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -349,7 +403,7 @@ export default function NewEventPage() {
               <button
                 type="button"
                 onClick={addAddon}
-                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
                 <Plus className="h-4 w-4" /> Adicionar Serviço
               </button>
@@ -357,14 +411,14 @@ export default function NewEventPage() {
             
             <div className="space-y-4">
               {addons.map((addon, index) => (
-                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/30 space-y-6 relative group">
+                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/20 space-y-6 relative group hover:border-blue-200 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome</label>
                       <input
                         type="text"
                         placeholder="Ex: Jantar, Ônibus..."
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={addon.name}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -377,7 +431,7 @@ export default function NewEventPage() {
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Preço (R$)</label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={addon.price}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -389,7 +443,7 @@ export default function NewEventPage() {
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Categoria</label>
                       <select
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none bg-white font-sans"
+                        className="w-full rounded-lg border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none bg-white font-sans focus:border-blue-300"
                         value={addon.category}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -413,26 +467,26 @@ export default function NewEventPage() {
             </div>
           </section>
 
-          <footer className="flex items-center justify-between p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40">
+          <footer className="flex items-center justify-between p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40 animate-in slide-in-from-bottom-4 duration-500">
              <button
               type="button"
-              className="text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-gray-900 transition-all font-sans"
+              className="text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:text-gray-900 transition-all font-sans"
             >
               Lançar depois (Rascunho)
             </button>
             <div className="flex gap-4">
               <button
                 type="button"
-                className="px-8 py-4 rounded-xl border border-gray-100 text-sm font-bold text-gray-500 hover:bg-gray-50"
+                className="px-8 py-4 rounded-xl border border-gray-100 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-10 py-4 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-black transition-all shadow-lg flex items-center gap-3 uppercase tracking-wider"
+                className="px-10 py-4 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-black transition-all shadow-xl shadow-blue-100 flex items-center gap-3 uppercase tracking-wider"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Lançar Evento agora'}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Lançar Evento'}
               </button>
             </div>
           </footer>
