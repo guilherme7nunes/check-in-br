@@ -17,6 +17,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  phone         String?
   role          String    @default("USER") // USER, ORGANIZER, ADMIN
   
   accounts      Account[]

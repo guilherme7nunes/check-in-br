@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         email,
         name,
         password: hashedPassword,
-        phone,
+        // phone, // Temporariamente desativado para o Guilherme passar o erro de coluna ausente no banco
         role: role || 'BUYER',
       },
     });
