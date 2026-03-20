@@ -62,7 +62,7 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                 </span>
-                Plataforma de Eventos nº 1 do Brasil
+                plataforma de eventos
               </div>
               <h1 className="text-5xl lg:text-7xl font-black leading-[1.1] tracking-tight text-gray-900">
                 Sua experiência de <span className="text-blue-600">Check-in</span> começa aqui.

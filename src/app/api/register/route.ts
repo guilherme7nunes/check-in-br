@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, name, role, acceptedTerms } = body;
+    const { email, password, name, phone, role, acceptedTerms } = body;
 
     if (!email || !password || !acceptedTerms) {
       return NextResponse.json(
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
         email,
         name,
         password: hashedPassword,
+        phone,
         role: role || 'BUYER',
       },
     });

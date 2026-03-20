@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export const dynamic = 'force-dynamic';
 import Navbar from '@/components/navbar';
@@ -33,6 +34,8 @@ export default function CheckoutPage() {
 }
 
 function CheckoutForm() {
+  const router = useRouter();
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const ticketId = searchParams.get('ticket');
   
@@ -202,10 +205,20 @@ function CheckoutForm() {
                  </div>
                </div>
 
-               <button className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition-all shadow-lg">
-                 Ir para o Pagamento (Stripe)
-                 <CreditCard className="h-5 w-5" />
-               </button>
+                <button 
+                  onClick={() => {
+                    if (!session) {
+                      const from = window.location.pathname + window.location.search;
+                      router.push(`/register?from=${encodeURIComponent(from)}`);
+                    } else {
+                      alert('Redirecionando para o Stripe...');
+                    }
+                  }}
+                  className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-100"
+                >
+                  {session ? 'Finalizar e Pagar Agora' : 'Fazer meu Cadastro para Pagar'}
+                  <CreditCard className="h-5 w-5" />
+                </button>
 
                <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-100 flex items-start gap-2">
                  <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />

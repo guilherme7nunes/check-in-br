@@ -126,7 +126,7 @@ function LoginForm() {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Ainda não tem conta?{' '}
-              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              <Link href={`/register?from=${encodeURIComponent(callbackUrl)}`} className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
                 Criar conta gratuita
               </Link>
             </p>
