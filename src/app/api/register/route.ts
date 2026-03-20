@@ -27,13 +27,14 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Ajuste dos Enums e Campos para o Novo Modelo de Banco
     const user = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
-        // phone, // Temporariamente desativado para o Guilherme passar o erro de coluna ausente no banco
-        role: role || 'BUYER',
+        phone: phone || null,
+        role: (role === 'ORGANIZER' || role === 'ADMIN') ? role : 'USER',
       },
     });
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       { message: 'Usuário criado com sucesso!', userId: user.id },
       { status: 201 }
     );
-    } catch (error: any) {
+  } catch (error: any) {
     console.error('ERRO NO REGISTRO:', error);
     return NextResponse.json(
       { message: 'Erro ao criar usuário', error: error.message },
