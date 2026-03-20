@@ -60,6 +60,7 @@ model TicketType {
   capacity    Int?
   isGroup     Boolean  @default(false)
   groupSize   Int      @default(1)
+  requiredFields String[] // name, email, phone, cpf, address, occupation, company
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id])
   

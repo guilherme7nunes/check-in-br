@@ -21,7 +21,12 @@ import {
   EyeOff,
   HelpCircle,
   Utensils,
-  Search
+  Search,
+  Check,
+  Briefcase,
+  Smartphone,
+  CreditCard,
+  Building
 } from 'lucide-react';
 
 export default function NewEventPage() {
@@ -39,7 +44,14 @@ export default function NewEventPage() {
   });
 
   const [ticketTypes, setTicketTypes] = useState([
-    { name: 'Individual', price: '', capacity: '', isGroup: false, groupSize: 1 }
+    { 
+      name: 'Individual', 
+      price: '', 
+      capacity: '', 
+      isGroup: false, 
+      groupSize: 1, 
+      requiredFields: ['name', 'email'] 
+    }
   ]);
 
   const [addons, setAddons] = useState([
@@ -56,7 +68,6 @@ export default function NewEventPage() {
       return;
     }
     try {
-      // Usando Nominatim (OpenStreetMap) - Grátis e rápido
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5`);
       const data = await response.json();
       setAddressSuggestions(data);
@@ -78,7 +89,29 @@ export default function NewEventPage() {
   };
 
   const addTicketType = () => {
-    setTicketTypes([...ticketTypes, { name: '', price: '', capacity: '', isGroup: false, groupSize: 1 }]);
+    setTicketTypes([...ticketTypes, { 
+      name: '', 
+      price: '', 
+      capacity: '', 
+      isGroup: false, 
+      groupSize: 1, 
+      requiredFields: ['name', 'email'] 
+    }]);
+  };
+
+  const toggleField = (index: number, field: string) => {
+    const newTypes = [...ticketTypes];
+    const fields = newTypes[index].requiredFields;
+    
+    if (fields.includes(field)) {
+      // Name e Email são obrigatórios (exemplo)
+      if (field !== 'name' && field !== 'email') {
+        newTypes[index].requiredFields = fields.filter(f => f !== field);
+      }
+    } else {
+      newTypes[index].requiredFields = [...fields, field];
+    }
+    setTicketTypes(newTypes);
   };
 
   const removeTicketType = (index: number) => {
@@ -98,17 +131,25 @@ export default function NewEventPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('Evento real criado com Sucesso! 🏁');
+      alert('Evento real configurado com Campos de Dados customizados! 🏁');
     }, 1500);
   };
+
+  const fieldOptions = [
+    { id: 'phone', label: 'Telefone', icon: <Smartphone className="h-3.5 w-3.5" /> },
+    { id: 'cpf', label: 'CPF/Documento', icon: <CreditCard className="h-3.5 w-3.5" /> },
+    { id: 'address', label: 'Endereço', icon: <MapPin className="h-3.5 w-3.5" /> },
+    { id: 'occupation', label: 'Profissão', icon: <Briefcase className="h-3.5 w-3.5" /> },
+    { id: 'company', label: 'Empresa', icon: <Building className="h-3.5 w-3.5" /> },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
       <Navbar />
       <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <header className="mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Novo Evento</h1>
-          <p className="text-gray-500 mt-2">Configure os detalhes do seu evento com agilidade e clareza.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight italic">Novo Evento 🏁</h1>
+          <p className="text-gray-500 mt-2 font-medium">Configure campos personalizados e flexíveis para os seus inscritos.</p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -122,7 +163,7 @@ export default function NewEventPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Capa do Evento */}
               <div className="md:col-span-2 space-y-3">
-                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Capa do Evento</label>
+                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Capa do Evento (Recomendado 16:9)</label>
                  <div className={`relative h-64 w-full rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden ${
                    eventData.image ? 'border-blue-400 bg-blue-50/5' : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-blue-200'
                  }`}>
@@ -141,12 +182,12 @@ export default function NewEventPage() {
                      </>
                    ) : (
                      <label className="cursor-pointer flex flex-col items-center gap-3 p-8 text-center bg-transparent w-full h-full justify-center">
-                        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-500">
+                        <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-500 transition-transform bg-white/80 backdrop-blur-sm group-hover:scale-110">
                           <ImageIcon className="h-6 w-6" />
                         </div>
                         <div className="space-y-1">
                           <p className="text-gray-700 font-bold">Subir capa do computador</p>
-                          <p className="text-gray-400 text-xs font-medium uppercase">Recomendado 16:9 • PNG ou JPG</p>
+                          <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest">1920x1080px • 16:9</p>
                         </div>
                         <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                      </label>
@@ -161,14 +202,14 @@ export default function NewEventPage() {
                   type="text"
                   required
                   placeholder="Ex: Encontro Nacional da FE. 2026"
-                  className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                  className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-200 bg-white"
                   value={eventData.title}
                   onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
                 />
               </div>
 
               {/* Datas e Chave de Horários */}
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 shadow-inner">
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/30 p-6 rounded-2xl border border-gray-100">
                 <div className="md:col-span-2 flex items-center justify-between mb-2">
                    <div className="flex items-center gap-2 text-gray-600 font-bold text-xs uppercase tracking-wider">
                      <Clock className="h-4 w-4" /> Período do Evento
@@ -176,7 +217,7 @@ export default function NewEventPage() {
                    <button 
                     type="button"
                     onClick={() => setEventData({ ...eventData, showTimes: !eventData.showTimes })}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all border ${
                       eventData.showTimes ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-white border-gray-200 text-gray-400'
                     }`}
                    >
@@ -190,7 +231,7 @@ export default function NewEventPage() {
                   <input
                     type="datetime-local"
                     required
-                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-bold focus:border-blue-500 outline-none bg-white"
                     value={eventData.startDate}
                     onChange={(e) => setEventData({ ...eventData, startDate: e.target.value })}
                   />
@@ -201,7 +242,7 @@ export default function NewEventPage() {
                   <input
                     type="datetime-local"
                     required
-                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full rounded-xl border border-gray-200 p-3 text-gray-900 font-bold focus:border-blue-500 outline-none bg-white"
                     value={eventData.endDate}
                     onChange={(e) => setEventData({ ...eventData, endDate: e.target.value })}
                   />
@@ -210,7 +251,7 @@ export default function NewEventPage() {
 
               {/* Localização com Autocomplete */}
               <div className="md:col-span-2 space-y-4 pt-4 border-t border-gray-50 relative">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Onde o evento acontecerá?</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Local do Evento</label>
                 <div className="flex gap-2">
                   {[
                     { id: 'PHYSICAL', label: 'Físico', icon: <MapPin className="h-4 w-4" /> },
@@ -240,8 +281,8 @@ export default function NewEventPage() {
                     <input
                       type="text"
                       required
-                      placeholder={eventData.locationType === 'PHYSICAL' ? "Digite para buscar o endereço..." : "Link da reunião ou plataforma"}
-                      className="w-full rounded-xl border border-gray-200 p-4 pl-11 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
+                      placeholder={eventData.locationType === 'PHYSICAL' ? "Digite endereços sugeridos pelo sistema..." : "Link da reunião ou plataforma"}
+                      className="w-full rounded-xl border border-gray-200 p-4 pl-11 text-gray-900 font-bold focus:border-blue-500 outline-none transition-all placeholder:text-gray-200 bg-white"
                       value={eventData.location}
                       onChange={(e) => {
                         setEventData({ ...eventData, location: e.target.value });
@@ -266,8 +307,8 @@ export default function NewEventPage() {
                            >
                              <MapPin className="h-4 w-4 mt-1 text-gray-400 group-hover:text-blue-500" />
                              <div>
-                                <p className="text-sm font-bold text-gray-900">{suggestion.display_name.split(',')[0]}</p>
-                                <p className="text-[10px] text-gray-400 leading-tight">{suggestion.display_name}</p>
+                                <p className="text-sm font-bold text-gray-900 leading-tight">{suggestion.display_name.split(',')[0]}</p>
+                                <p className="text-[10px] text-gray-400 leading-tight truncate max-w-sm">{suggestion.display_name}</p>
                              </div>
                            </button>
                         ))}
@@ -276,62 +317,35 @@ export default function NewEventPage() {
                   </div>
                 )}
               </div>
-
-              {/* Descrição e Programação */}
-              <div className="md:col-span-2 space-y-6 pt-6 border-t border-gray-50">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Descrição Principal</label>
-                  <textarea
-                    rows={4}
-                    placeholder="Conte mais sobre o objetivo do seu evento..."
-                    className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                    value={eventData.description}
-                    onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                     📅 Programação Completa
-                  </div>
-                  <textarea
-                    rows={6}
-                    placeholder="Ex:\nDia 1 - Abertura às 19h\nDia 2 - Palestra às 9h..."
-                    className="w-full rounded-xl border border-gray-200 p-4 text-gray-900 font-mono text-sm leading-relaxed focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50/20"
-                    value={eventData.schedule}
-                    onChange={(e) => setEventData({ ...eventData, schedule: e.target.value })}
-                  />
-                </div>
-              </div>
             </div>
           </section>
 
-          {/* Seção 2: Ingressos */}
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8">
+          {/* Seção 2: Ingressos com Seleção de Dados */}
+          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8 animate-in fade-in duration-700">
             <div className="flex justify-between items-center pb-4 border-b border-gray-50">
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Configurar Ingressos</h2>
+                <h2 className="text-xl font-semibold text-gray-900 italic">Ingressos 🔥</h2>
               </div>
               <button
                 type="button"
                 onClick={addTicketType}
-                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
+                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" /> Adicionar Tipo
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {ticketTypes.map((ticket, index) => (
-                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/20 space-y-6 relative group border-l-4 border-l-blue-500 hover:border-blue-200 transition-all">
+                <div key={index} className="p-8 border border-gray-100 rounded-3xl bg-gray-50/10 space-y-8 relative group border-l-8 border-l-blue-500 hover:border-blue-100 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome do Ingresso</label>
                       <input
                         type="text"
                         placeholder="Ex: Individual, VIP..."
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
+                        className="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={ticket.name}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -345,7 +359,7 @@ export default function NewEventPage() {
                       <input
                         type="number"
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
+                        className="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={ticket.price}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -370,21 +384,57 @@ export default function NewEventPage() {
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Grupo</span>
                       </label>
                       {ticket.isGroup && (
-                        <input
-                          type="number"
-                          className="w-16 rounded-lg border border-gray-200 p-2 text-xs text-gray-900 font-bold"
-                          value={ticket.groupSize}
-                          onChange={(e) => {
-                            const newTypes = [...ticketTypes];
-                            newTypes[index].groupSize = parseInt(e.target.value) || 1;
-                            setTicketTypes(newTypes);
-                          }}
-                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-gray-400">Pax:</span>
+                          <input
+                            type="number"
+                            className="w-16 rounded-lg border border-gray-200 p-2 text-xs text-gray-900 font-bold bg-white"
+                            value={ticket.groupSize}
+                            onChange={(e) => {
+                              const newTypes = [...ticketTypes];
+                              newTypes[index].groupSize = parseInt(e.target.value) || 1;
+                              setTicketTypes(newTypes);
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
+
+                  {/* NOVO: Seletor de Dados por Ingresso */}
+                  <div className="bg-white p-6 rounded-2xl border border-gray-50 space-y-4">
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+                       Quais dados coletar do Participante? 👥
+                     </p>
+                     <div className="flex flex-wrap gap-2">
+                       {/* Name e Email são fixos por enquanto */}
+                        <div className="px-3 py-2 rounded-lg bg-gray-50 text-gray-400 text-[10px] font-bold flex items-center gap-1.5 opacity-50 cursor-not-allowed border border-gray-100">
+                          <Check className="h-3 w-3" /> Nome
+                        </div>
+                        <div className="px-3 py-2 rounded-lg bg-gray-50 text-gray-400 text-[10px] font-bold flex items-center gap-1.5 opacity-50 cursor-not-allowed border border-gray-100">
+                           <Check className="h-3 w-3" /> Email
+                        </div>
+                        
+                        {fieldOptions.map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => toggleField(index, opt.id)}
+                            className={`px-3 py-2 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all border ${
+                              ticket.requiredFields.includes(opt.id)
+                              ? 'bg-blue-600 border-blue-600 text-white'
+                              : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200 hover:text-blue-500'
+                            }`}
+                          >
+                             {ticket.requiredFields.includes(opt.id) ? <Check className="h-3 w-3" /> : opt.icon }
+                             {opt.label}
+                          </button>
+                        ))}
+                     </div>
+                  </div>
+
                   {ticketTypes.length > 1 && (
-                    <button onClick={() => removeTicketType(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500">
+                    <button onClick={() => removeTicketType(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   )}
@@ -398,12 +448,12 @@ export default function NewEventPage() {
             <div className="flex justify-between items-center pb-4 border-b border-gray-50">
                <div className="flex items-center gap-3">
                 <Utensils className="h-5 w-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Adicionais</h2>
+                <h2 className="text-xl font-semibold text-gray-900 italic">Adicionais 🍔</h2>
               </div>
               <button
                 type="button"
                 onClick={addAddon}
-                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
+                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
                 <Plus className="h-4 w-4" /> Adicionar Adicional
               </button>
@@ -411,14 +461,14 @@ export default function NewEventPage() {
             
             <div className="space-y-4">
               {addons.map((addon, index) => (
-                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/20 space-y-6 relative group hover:border-blue-200 transition-all">
+                <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/10 space-y-6 relative group hover:border-blue-100 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome</label>
                       <input
                         type="text"
                         placeholder="Ex: Jantar, Ônibus..."
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={addon.name}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -431,7 +481,7 @@ export default function NewEventPage() {
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Preço (R$)</label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={addon.price}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -443,7 +493,7 @@ export default function NewEventPage() {
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Categoria</label>
                       <select
-                        className="w-full rounded-lg border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none bg-white font-sans focus:border-blue-300"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={addon.category}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -458,7 +508,7 @@ export default function NewEventPage() {
                     </div>
                   </div>
                   {addons.length > 1 && (
-                    <button onClick={() => removeAddon(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500">
+                    <button onClick={() => removeAddon(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   )}
@@ -467,26 +517,26 @@ export default function NewEventPage() {
             </div>
           </section>
 
-          <footer className="flex items-center justify-between p-8 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40 animate-in slide-in-from-bottom-4 duration-500">
+          <footer className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40">
              <button
               type="button"
-              className="text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:text-gray-900 transition-all font-sans"
+              className="text-gray-400 font-black text-[10px] uppercase tracking-[0.3em] hover:text-blue-600 transition-all font-sans"
             >
-              Lançar depois (Rascunho)
+              CRIAR RASCUNHO
             </button>
             <div className="flex gap-4">
               <button
                 type="button"
-                className="px-8 py-4 rounded-xl border border-gray-100 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
+                className="px-8 py-4 rounded-xl border border-gray-50 text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all font-sans"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-10 py-4 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-black transition-all shadow-xl shadow-blue-100 flex items-center gap-3 uppercase tracking-wider"
+                className="px-10 py-4 rounded-xl bg-blue-600 text-sm font-black text-white hover:bg-black transition-all shadow-xl shadow-blue-100 flex items-center gap-3 uppercase tracking-widest italic"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Lançar Evento'}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin p-0" /> : 'Lançar Evento 🏆'}
               </button>
             </div>
           </footer>
