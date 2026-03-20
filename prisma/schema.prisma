@@ -10,25 +10,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  ORGANIZER
-  BUYER
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String    @unique
-  password      String
-  phone         String?
-  role          UserRole  @default(BUYER)
-  stripeAccountId String? // For Organizer's split payment
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("USER") // USER, ORGANIZER, ADMIN
+  
+  accounts      Account[]
+  sessions      Session[]
+  events        Event[]   @relation("UserEvents")
+  orders        Order[]
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
 
-  events        Event[]   // If Organizer
-  orders        Order[]   // If Buyer
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -41,9 +65,9 @@ model Event {
   location    String
   locationType String  @default("PHYSICAL") // PHYSICAL, ONLINE, TO_DEFINE
   image       String?
-  schedule    String?  // Programação do evento (Markdown ou texto simples)
+  schedule    String?  // Programação do evento
   organizerId String
-  organizer   User     @relation(fields: [organizerId], references: [id])
+  organizer   User     @relation("UserEvents", fields: [organizerId], references: [id])
   
   ticketTypes TicketType[]
   addons      Addon[]
@@ -60,7 +84,7 @@ model TicketType {
   capacity    Int?
   isGroup     Boolean  @default(false)
   groupSize   Int      @default(1)
-  requiredFields String[] // name, email, phone, cpf, address, occupation, company
+  customFields Json?   // [{ label: "Tamanho de Camiseta", required: true }]
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id])
   
@@ -69,67 +93,54 @@ model TicketType {
 
 model Addon {
   id          String   @id @default(cuid())
-  name        String   // e.g., "Jantar Quinta-feira", "Translado Ônibus"
+  name        String
   price       Decimal
-  category    String   // e.g., "MEAL", "TRANSPORT"
+  category    String   // MEAL, TRANSPORT, OTHER
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id])
   
-  orderItems  OrderItem[]
+  ticketAddons TicketAddon[]
 }
 
 model Order {
-  id          String   @id @default(cuid())
-  total       Decimal
-  status      String   @default("PENDING") // PENDING, PAID, CANCELLED
+  id              String   @id @default(cuid())
+  total           Decimal
+  status          String   @default("PENDING") // PENDING, PAID, CANCELLED
   stripeSessionId String?
-  buyerId     String
-  buyer       User     @relation(fields: [buyerId], references: [id])
-  eventId     String
-  event       Event    @relation(fields: [eventId], references: [id])
+  buyerId         String
+  buyer           User     @relation(fields: [buyerId], references: [id])
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id])
   
-  tickets     Ticket[]
-  orderItems  OrderItem[]
-
-  createdAt   DateTime @default(now())
+  tickets         Ticket[]
+  createdAt       DateTime @default(now())
 }
 
 model Ticket {
   id            String   @id @default(cuid())
+  qrCode        String?  @unique
+  attendeeName  String
+  attendeeEmail String?
+  customData    Json?    // { "Instagram": "@user", "Idade": "25" }
+  status        String   @default("PENDING") // PENDING, USED
+  
   orderId       String
   order         Order    @relation(fields: [orderId], references: [id])
   ticketTypeId  String
   ticketType    TicketType @relation(fields: [ticketTypeId], references: [id])
   
-  attendees     Attendee[]
-}
-
-model Attendee {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  cpf       String?
-  ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  addons        TicketAddon[]
   
-  addons    AttendeeAddon[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
-model OrderItem {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
+model TicketAddon {
+  id        String @id @default(cuid())
+  ticketId  String
+  ticket    Ticket @relation(fields: [ticketId], references: [id])
   addonId   String
-  addon     Addon    @relation(fields: [addonId], references: [id])
-  quantity  Int      @default(1)
-}
-
-// Link specific addons to specific attendees (e.g., Attendee 1 wants Lunch Fri)
-model AttendeeAddon {
-  id          String   @id @default(cuid())
-  attendeeId  String
-  attendee    Attendee @relation(fields: [attendeeId], references: [id])
-  addonId     String
-  // We can relational link or just use the ID for simplicity if shared
-  createdAt   DateTime @default(now())
+  addon     Addon  @relation(fields: [addonId], references: [id])
+  
+  @@unique([ticketId, addonId])
 }
