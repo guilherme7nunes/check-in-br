@@ -14,7 +14,9 @@ import {
   Bus, 
   Users,
   Save,
-  Loader2
+  Loader2,
+  Upload,
+  X
 } from 'lucide-react';
 
 export default function NewEventPage() {
@@ -35,6 +37,17 @@ export default function NewEventPage() {
   const [addons, setAddons] = useState([
     { name: '', price: '', category: 'MEAL' }
   ]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventData({ ...eventData, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const addTicketType = () => {
     setTicketTypes([...ticketTypes, { name: '', price: '', capacity: '', isGroup: false, groupSize: 1 }]);
@@ -58,134 +71,154 @@ export default function NewEventPage() {
     // Lógica de salvamento viria aqui integrando com a API
     setTimeout(() => {
       setLoading(false);
-      alert('Evento criado com sucesso (Simulado)!');
+      alert('Evento criado com sucesso (Integrado com Capa e Programação)!');
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <Navbar />
       <main className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Criar Novo Evento</h1>
-          <p className="text-gray-600 mt-1">Configure os ingressos, refeições e translados do seu evento.</p>
+        <div className="mb-10 flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight italic">Criar Novo Evento 🏁</h1>
+            <p className="text-gray-500 font-medium">Lance seu Encontro Nacional agora com todos os detalhes.</p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Sessão 1: Informações Básicas */}
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-              Informações Gerais
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-10">
+          {/* Sessão 1: Informações Básicas e Capa */}
+          <section className="bg-white p-8 sm:p-12 rounded-[32px] shadow-sm border border-gray-100 space-y-8 animate-in fade-in duration-500">
+            <div className="flex items-center gap-3 pb-6 border-b border-gray-50">
+              <div className="bg-blue-600 p-2 rounded-xl"><CheckCircle2 className="h-5 w-5 text-white" /></div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Informações Gerais</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Upload da Imagem */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título do Evento</label>
+                 <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Capa do Evento (Recomendado 16:9)</label>
+                 <div className={`relative h-64 w-full rounded-[32px] border-4 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden group ${
+                   eventData.image ? 'border-blue-500 bg-blue-50/20' : 'border-gray-100 bg-gray-50 hover:border-blue-200'
+                 }`}>
+                   {eventData.image ? (
+                     <>
+                       <img src={eventData.image} alt="Cover Preview" className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                         <label className="bg-white text-blue-600 px-6 py-3 rounded-full font-black text-xs cursor-pointer hover:scale-105 transition-transform flex items-center gap-2 shadow-xl">
+                           <Upload className="h-4 w-4" /> Alterar Imagem
+                           <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                         </label>
+                         <button 
+                           onClick={() => setEventData({ ...eventData, image: '' })}
+                           className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform shadow-xl"
+                         >
+                           <X className="h-5 w-5" />
+                         </button>
+                       </div>
+                     </>
+                   ) : (
+                     <label className="cursor-pointer flex flex-col items-center gap-4 py-12 px-8 text-center group">
+                        <div className="bg-white p-6 rounded-[28px] shadow-xl shadow-gray-200 group-hover:scale-110 transition-transform">
+                          <ImageIcon className="h-10 w-10 text-blue-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-gray-900 font-black text-lg">Clique para subir a capa</p>
+                          <p className="text-gray-400 font-medium text-xs uppercase tracking-widest">JPG, PNG ou WEBP • Proporção 16:9</p>
+                        </div>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                     </label>
+                   )}
+                 </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-2">Título do Evento</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Encontro Nacional de Tecnologia"
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
+                  className="w-full rounded-2xl border-2 border-gray-50 p-4 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-0 outline-none transition-all font-bold text-lg"
                   value={eventData.title}
                   onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" /> Data e Hora
-                </label>
+                <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-2">📅 Data e Hora</label>
                 <input
                   type="datetime-local"
                   required
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
+                  className="w-full rounded-2xl border-2 border-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-0 outline-none font-bold"
                   value={eventData.date}
                   onChange={(e) => setEventData({ ...eventData, date: e.target.value })}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" /> Localização
-                </label>
+                <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-2">📍 Localização</label>
                 <input
                   type="text"
                   required
                   placeholder="Cidade, UF ou Local Específico"
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
+                  className="w-full rounded-2xl border-2 border-gray-50 p-4 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-0 outline-none font-bold"
                   value={eventData.location}
                   onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
                 />
               </div>
+
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-2">📝 Descrição Principal</label>
                 <textarea
                   rows={4}
-                  placeholder="Descreva seu evento de forma geral..."
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium font-sans"
+                  placeholder="Conte um pouco sobre o evento..."
+                  className="w-full rounded-2xl border-2 border-gray-50 p-4 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-0 outline-none font-medium leading-relaxed"
                   value={eventData.description}
                   onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
                 />
               </div>
-              
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
-                  <span>Capa do Evento</span>
-                  <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full uppercase font-black">Proporção 16:9 (1920x1080)</span>
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <ImageIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Cole aqui o link da imagem (URL)"
-                    className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
-                    value={eventData.image}
-                    onChange={(e) => setEventData({ ...eventData, image: e.target.value })}
-                  />
-                </div>
-              </div>
 
               <div className="md:col-span-2">
-                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                   📅 Programação Completa
-                 </label>
-                 <textarea
-                   rows={6}
-                   placeholder="Liste os horários, palestras e atividades. Isso aparecerá em um botão especial para o usuário."
-                   className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium font-mono text-xs leading-relaxed"
-                   value={eventData.schedule}
-                   onChange={(e) => setEventData({ ...eventData, schedule: e.target.value })}
-                 />
+                <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-2 font-mono flex items-center gap-2">
+                  📜 Programação do Evento (Schedule)
+                </label>
+                <textarea
+                  rows={6}
+                  placeholder="9:00 - Abertura\n10:30 - Coffee Break\n..."
+                  className="w-full rounded-2xl border-2 border-gray-50 p-4 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-0 outline-none font-mono text-sm leading-relaxed"
+                  value={eventData.schedule}
+                  onChange={(e) => setEventData({ ...eventData, schedule: e.target.value })}
+                />
               </div>
             </div>
           </section>
 
           {/* Sessão 2: Tipos de Ingresso */}
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                Ingressos
-              </h2>
+          <section className="bg-white p-8 sm:p-12 rounded-[32px] shadow-sm border border-gray-100 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex justify-between items-center pb-6 border-b border-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-600 p-2 rounded-xl"><Users className="h-5 w-5 text-white" /></div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Ingressos 🔥</h2>
+              </div>
               <button
                 type="button"
                 onClick={addTicketType}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+                className="bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" /> Adicionar Tipo
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-6">
               {ticketTypes.map((ticket, index) => (
-                <div key={index} className="p-5 border border-gray-100 rounded-xl bg-gray-50/50 space-y-4 relative animate-in fade-in slide-in-from-right-2 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-1">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nome do Ingresso</label>
+                <div key={index} className="p-8 border-2 border-gray-50 rounded-[28px] bg-white space-y-6 relative hover:border-blue-100 transition-all group">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nome do Ingresso</label>
                       <input
                         type="text"
                         placeholder="Ex: Individual, Duplo, VIP"
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none"
+                        className="w-full rounded-xl border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={ticket.name}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -195,11 +228,11 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Preço (R$)</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Preço (R$)</label>
                       <input
                         type="number"
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none"
+                        className="w-full rounded-xl border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={ticket.price}
                         onChange={(e) => {
                           const newTypes = [...ticketTypes];
@@ -208,11 +241,11 @@ export default function NewEventPage() {
                         }}
                       />
                     </div>
-                    <div className="flex items-center gap-4 mt-6">
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <div className="flex items-center gap-6 pt-6">
+                      <label className="flex items-center gap-3 cursor-pointer select-none">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="h-6 w-6 rounded-lg border-2 border-gray-100 text-blue-600 focus:ring-0"
                           checked={ticket.isGroup}
                           onChange={(e) => {
                             const newTypes = [...ticketTypes];
@@ -221,20 +254,22 @@ export default function NewEventPage() {
                             setTicketTypes(newTypes);
                           }}
                         />
-                        <span className="text-sm text-gray-700">Ingresso em Grupo?</span>
+                        <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Grupo?</span>
                       </label>
                       {ticket.isGroup && (
-                        <input
-                          type="number"
-                          placeholder="Pessoas"
-                          className="w-16 rounded-lg border border-gray-200 p-2 text-sm outline-none text-gray-900 font-medium"
-                          value={ticket.groupSize}
-                          onChange={(e) => {
-                            const newTypes = [...ticketTypes];
-                            newTypes[index].groupSize = parseInt(e.target.value) || 1;
-                            setTicketTypes(newTypes);
-                          }}
-                        />
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-bold text-gray-400">Pessoas:</span>
+                           <input
+                            type="number"
+                            className="w-16 rounded-lg border border-gray-100 p-2 text-xs text-gray-900 font-bold outline-none"
+                            value={ticket.groupSize}
+                            onChange={(e) => {
+                              const newTypes = [...ticketTypes];
+                              newTypes[index].groupSize = parseInt(e.target.value) || 1;
+                              setTicketTypes(newTypes);
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -242,9 +277,9 @@ export default function NewEventPage() {
                     <button
                       type="button"
                       onClick={() => removeTicketType(index)}
-                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
+                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   )}
                 </div>
@@ -253,31 +288,31 @@ export default function NewEventPage() {
           </section>
 
           {/* Sessão 3: Adicionais (Refeições/Transporte) */}
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Utensils className="h-5 w-5 text-blue-600" />
-                Adicionais (Refeições e Transporte)
-              </h2>
+          <section className="bg-white p-8 sm:p-12 rounded-[32px] shadow-sm border border-gray-100 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="flex justify-between items-center pb-6 border-b border-gray-50">
+               <div className="flex items-center gap-3">
+                <div className="bg-blue-600 p-2 rounded-xl"><Utensils className="h-5 w-5 text-white" /></div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Extras / Adicionais 🍔</h2>
+              </div>
               <button
                 type="button"
                 onClick={addAddon}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+                className="bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" /> Adicionar Serviço
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
               {addons.map((addon, index) => (
-                <div key={index} className="p-5 border border-gray-100 rounded-xl bg-gray-50/50 space-y-4 relative animate-in fade-in slide-in-from-right-2 duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div key={index} className="p-8 border-2 border-gray-50 rounded-[28px] bg-white space-y-6 relative hover:border-blue-100 transition-all group">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nome do Adicional</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nome do Adicional</label>
                       <input
                         type="text"
                         placeholder="Ex: Jantar Quinta, Ônibus Hotel A"
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none"
+                        className="w-full rounded-xl border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={addon.name}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -287,11 +322,11 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Preço (R$)</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Preço (R$)</label>
                       <input
                         type="number"
                         placeholder="0,00"
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none"
+                        className="w-full rounded-xl border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none focus:border-blue-300"
                         value={addon.price}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -301,9 +336,9 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Categoria</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Categoria</label>
                       <select
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none bg-white text-gray-900 font-medium"
+                        className="w-full rounded-xl border border-gray-100 p-3 text-sm text-gray-900 font-bold outline-none bg-white focus:border-blue-300"
                         value={addon.category}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -321,9 +356,9 @@ export default function NewEventPage() {
                     <button
                       type="button"
                       onClick={() => removeAddon(index)}
-                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
+                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   )}
                 </div>
@@ -331,24 +366,24 @@ export default function NewEventPage() {
             </div>
           </section>
 
-          <footer className="flex justify-end gap-4 shadow-xl shadow-blue-50 p-4 bg-white rounded-2xl border border-gray-100 sticky bottom-4 z-40">
+          <footer className="flex justify-end gap-4 shadow-2xl shadow-blue-100 p-6 bg-white/80 backdrop-blur-xl rounded-[32px] border border-gray-100 sticky bottom-6 z-40 animate-in slide-in-from-bottom-4 duration-500">
             <button
               type="button"
-              className="px-6 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="px-10 py-5 rounded-2xl border-2 border-gray-100 text-sm font-black text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-all uppercase tracking-widest"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center gap-2"
+              className="px-12 py-5 rounded-2xl bg-blue-600 text-sm font-black text-white hover:bg-black transition-all shadow-xl shadow-blue-200 flex items-center gap-3 uppercase tracking-widest"
             >
               {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
-                  <Save className="h-5 w-5" />
-                  Salvar Evento
+                  <Save className="h-6 w-6" />
+                  Lançar Evento Real
                 </>
               )}
             </button>
