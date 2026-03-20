@@ -35,8 +35,11 @@ model Event {
   id          String   @id @default(cuid())
   title       String
   description String?
-  date        DateTime
+  date        DateTime // Start Date
+  endDate     DateTime? // End Date
+  showTimes   Boolean  @default(true)
   location    String
+  locationType String  @default("PHYSICAL") // PHYSICAL, ONLINE, TO_DEFINE
   image       String?
   schedule    String?  // Programação do evento (Markdown ou texto simples)
   organizerId String
