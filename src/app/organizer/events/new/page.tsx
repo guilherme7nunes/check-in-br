@@ -84,7 +84,7 @@ export default function NewEventPage() {
                   type="text"
                   required
                   placeholder="Ex: Encontro Nacional de Tecnologia"
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
                   value={eventData.title}
                   onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
                 />
@@ -96,7 +96,7 @@ export default function NewEventPage() {
                 <input
                   type="datetime-local"
                   required
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
                   value={eventData.date}
                   onChange={(e) => setEventData({ ...eventData, date: e.target.value })}
                 />
@@ -109,7 +109,7 @@ export default function NewEventPage() {
                   type="text"
                   required
                   placeholder="Cidade, UF ou Local Específico"
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
                   value={eventData.location}
                   onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
                 />
@@ -119,7 +119,7 @@ export default function NewEventPage() {
                 <textarea
                   rows={4}
                   placeholder="Descreva seu evento..."
-                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full rounded-xl border border-gray-200 p-3 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 font-medium"
                   value={eventData.description}
                   onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
                 />
@@ -194,7 +194,7 @@ export default function NewEventPage() {
                         <input
                           type="number"
                           placeholder="Pessoas"
-                          className="w-16 rounded-lg border border-gray-200 p-2 text-sm outline-none"
+                          className="w-16 rounded-lg border border-gray-200 p-2 text-sm outline-none text-gray-900 font-medium"
                           value={ticket.groupSize}
                           onChange={(e) => {
                             const newTypes = [...ticketTypes];
@@ -270,7 +270,7 @@ export default function NewEventPage() {
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Categoria</label>
                       <select
-                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none bg-white"
+                        className="w-full rounded-lg border border-gray-200 p-2 text-sm outline-none bg-white text-gray-900 font-medium"
                         value={addon.category}
                         onChange={(e) => {
                           const newAddons = [...addons];
