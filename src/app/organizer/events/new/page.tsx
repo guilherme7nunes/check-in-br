@@ -26,7 +26,9 @@ import {
   Briefcase,
   Smartphone,
   CreditCard,
-  Building
+  Building,
+  Mail,
+  UserPlus
 } from 'lucide-react';
 
 export default function NewEventPage() {
@@ -50,7 +52,7 @@ export default function NewEventPage() {
       capacity: '', 
       isGroup: false, 
       groupSize: 1, 
-      requiredFields: ['name', 'email'] 
+      extraFields: [] // Campos opcionais acrescentados pelo organizador
     }
   ]);
 
@@ -95,21 +97,18 @@ export default function NewEventPage() {
       capacity: '', 
       isGroup: false, 
       groupSize: 1, 
-      requiredFields: ['name', 'email'] 
+      extraFields: [] 
     }]);
   };
 
-  const toggleField = (index: number, field: string) => {
+  const toggleExtraField = (index: number, field: string) => {
     const newTypes = [...ticketTypes];
-    const fields = newTypes[index].requiredFields;
+    const fields = newTypes[index].extraFields;
     
     if (fields.includes(field)) {
-      // Name e Email são obrigatórios (exemplo)
-      if (field !== 'name' && field !== 'email') {
-        newTypes[index].requiredFields = fields.filter(f => f !== field);
-      }
+      newTypes[index].extraFields = fields.filter(f => f !== field);
     } else {
-      newTypes[index].requiredFields = [...fields, field];
+      newTypes[index].extraFields = [...fields, field];
     }
     setTicketTypes(newTypes);
   };
@@ -131,11 +130,12 @@ export default function NewEventPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('Evento real configurado com Campos de Dados customizados! 🏁');
+      alert('Evento configurado com a regra Inscrição Ágil (P1: Nome/Email, P2+: Nome + Extras)! 🏁');
     }, 1500);
   };
 
-  const fieldOptions = [
+  const availableExtraFields = [
+    { id: 'email_extra', label: 'Email (Acompanhantes)', icon: <Mail className="h-3 w-3" /> },
     { id: 'phone', label: 'Telefone', icon: <Smartphone className="h-3.5 w-3.5" /> },
     { id: 'cpf', label: 'CPF/Documento', icon: <CreditCard className="h-3.5 w-3.5" /> },
     { id: 'address', label: 'Endereço', icon: <MapPin className="h-3.5 w-3.5" /> },
@@ -149,11 +149,11 @@ export default function NewEventPage() {
       <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <header className="mb-12">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight italic">Novo Evento 🏁</h1>
-          <p className="text-gray-500 mt-2 font-medium">Configure campos personalizados e flexíveis para os seus inscritos.</p>
+          <p className="text-gray-500 mt-2 font-medium">Inscrição Inteligente: P1 completo, acompanhantes ágeis.</p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Seção 1: Informações Gerais */}
+          {/* Sessão 1: Informações Gerais */}
           <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8 animate-in fade-in duration-500">
             <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
               <CheckCircle2 className="h-5 w-5 text-blue-600" />
@@ -181,7 +181,7 @@ export default function NewEventPage() {
                        </div>
                      </>
                    ) : (
-                     <label className="cursor-pointer flex flex-col items-center gap-3 p-8 text-center bg-transparent w-full h-full justify-center">
+                     <label className="cursor-pointer flex flex-col items-center gap-3 p-8 text-center bg-transparent w-full h-full justify-center group">
                         <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-500 transition-transform bg-white/80 backdrop-blur-sm group-hover:scale-110">
                           <ImageIcon className="h-6 w-6" />
                         </div>
@@ -320,12 +320,12 @@ export default function NewEventPage() {
             </div>
           </section>
 
-          {/* Seção 2: Ingressos com Seleção de Dados */}
+          {/* Seção 2: Tipos de Ingressos */}
           <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-8 animate-in fade-in duration-700">
             <div className="flex justify-between items-center pb-4 border-b border-gray-50">
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900 italic">Ingressos 🔥</h2>
+                <h2 className="text-xl font-semibold text-gray-900 italic font-black">Configuração de Ingressos 🎟️</h2>
               </div>
               <button
                 type="button"
@@ -341,10 +341,10 @@ export default function NewEventPage() {
                 <div key={index} className="p-8 border border-gray-100 rounded-3xl bg-gray-50/10 space-y-8 relative group border-l-8 border-l-blue-500 hover:border-blue-100 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome do Ingresso</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nome do Ingresso</label>
                       <input
                         type="text"
-                        placeholder="Ex: Individual, VIP..."
+                        placeholder="Ex: Individual, Duplo..."
                         className="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
                         value={ticket.name}
                         onChange={(e) => {
@@ -355,7 +355,7 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Preço (R$)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Preço (R$)</label>
                       <input
                         type="number"
                         placeholder="0,00"
@@ -381,11 +381,11 @@ export default function NewEventPage() {
                             setTicketTypes(newTypes);
                           }}
                         />
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Grupo</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Grupo/Promo</span>
                       </label>
                       {ticket.isGroup && (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-gray-400">Pax:</span>
+                          <span className="text-[10px] font-bold text-gray-400">Pessoas:</span>
                           <input
                             type="number"
                             className="w-16 rounded-lg border border-gray-200 p-2 text-xs text-gray-900 font-bold bg-white"
@@ -401,40 +401,64 @@ export default function NewEventPage() {
                     </div>
                   </div>
 
-                  {/* NOVO: Seletor de Dados por Ingresso */}
-                  <div className="bg-white p-6 rounded-2xl border border-gray-50 space-y-4">
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
-                       Quais dados coletar do Participante? 👥
-                     </p>
-                     <div className="flex flex-wrap gap-2">
-                       {/* Name e Email são fixos por enquanto */}
-                        <div className="px-3 py-2 rounded-lg bg-gray-50 text-gray-400 text-[10px] font-bold flex items-center gap-1.5 opacity-50 cursor-not-allowed border border-gray-100">
-                          <Check className="h-3 w-3" /> Nome
-                        </div>
-                        <div className="px-3 py-2 rounded-lg bg-gray-50 text-gray-400 text-[10px] font-bold flex items-center gap-1.5 opacity-50 cursor-not-allowed border border-gray-100">
-                           <Check className="h-3 w-3" /> Email
-                        </div>
-                        
-                        {fieldOptions.map((opt) => (
+                  {/* NOVO: Painel de Informações Inscrição Ágil */}
+                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black text-gray-900 uppercase tracking-[0.1em] flex items-center gap-2">
+                        <UserPlus className="h-4 w-4 text-blue-500" /> Regras de Coleta de Dados
+                      </p>
+                      <div className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg uppercase tracking-widest border border-green-100">
+                        Inscrição Ágil Ativada
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {/* P1 Section */}
+                      <div className="flex-1 p-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-3 italic">P1 (Titular - Obrigatório)</p>
+                         <div className="flex flex-wrap gap-2 text-[10px] font-black">
+                            <span className="px-2 py-1 bg-white border border-gray-200 text-gray-400 rounded-md">NOME</span>
+                            <span className="px-2 py-1 bg-white border border-gray-200 text-gray-400 rounded-md">EMAIL</span>
+                            <span className="text-blue-600 self-center">+ EXTRAS</span>
+                         </div>
+                      </div>
+
+                      {/* P2+ Section */}
+                      <div className="flex-1 p-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                         <p className="text-[10px] font-bold text-gray-400 uppercase mb-3 italic">P2 e Acompanhantes (Mínimo)</p>
+                         <div className="flex flex-wrap gap-2 text-[10px] font-black">
+                            <span className="px-2 py-1 bg-white border border-gray-200 text-gray-400 rounded-md">NOME</span>
+                            <span className="text-blue-600 self-center">+ EXTRAS</span>
+                         </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Acrescentar Informações (Opcionais ou Obrigatórias):
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {availableExtraFields.map((opt) => (
                           <button
                             key={opt.id}
                             type="button"
-                            onClick={() => toggleField(index, opt.id)}
-                            className={`px-3 py-2 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-all border ${
-                              ticket.requiredFields.includes(opt.id)
-                              ? 'bg-blue-600 border-blue-600 text-white'
-                              : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200 hover:text-blue-500'
+                            onClick={() => toggleExtraField(index, opt.id)}
+                            className={`px-4 py-2.5 rounded-xl text-[10px] font-black flex items-center gap-2 transition-all border-2 ${
+                              ticket.extraFields.includes(opt.id)
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100'
+                              : 'bg-white border-gray-50 text-gray-400 hover:border-blue-100 hover:text-blue-500'
                             }`}
                           >
-                             {ticket.requiredFields.includes(opt.id) ? <Check className="h-3 w-3" /> : opt.icon }
-                             {opt.label}
+                             {ticket.extraFields.includes(opt.id) ? <Check className="h-4 w-4" /> : opt.icon }
+                             {opt.label.toUpperCase()}
                           </button>
                         ))}
-                     </div>
+                      </div>
+                    </div>
                   </div>
 
                   {ticketTypes.length > 1 && (
-                    <button onClick={() => removeTicketType(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">
+                    <button onClick={() => removeTicketType(index)} className="absolute top-4 right-4 text-gray-200 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   )}
@@ -448,14 +472,14 @@ export default function NewEventPage() {
             <div className="flex justify-between items-center pb-4 border-b border-gray-50">
                <div className="flex items-center gap-3">
                 <Utensils className="h-5 w-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900 italic">Adicionais 🍔</h2>
+                <h2 className="text-xl font-semibold text-gray-900 italic font-black">Adicionais / Serviços 🍔</h2>
               </div>
               <button
                 type="button"
                 onClick={addAddon}
                 className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
-                <Plus className="h-4 w-4" /> Adicionar Adicional
+                <Plus className="h-4 w-4 text-inherit" /> Adicionar Adicional
               </button>
             </div>
             
@@ -464,11 +488,11 @@ export default function NewEventPage() {
                 <div key={index} className="p-6 border border-gray-100 rounded-xl bg-gray-50/10 space-y-6 relative group hover:border-blue-100 transition-all">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Nome</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nome</label>
                       <input
                         type="text"
                         placeholder="Ex: Jantar, Ônibus..."
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white font-sans"
                         value={addon.name}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -478,10 +502,10 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Preço (R$)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Preço (R$)</label>
                       <input
                         type="number"
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white font-sans"
                         value={addon.price}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -491,9 +515,9 @@ export default function NewEventPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Categoria</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Categoria</label>
                       <select
-                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white"
+                        className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 font-bold focus:border-blue-300 outline-none bg-white font-sans"
                         value={addon.category}
                         onChange={(e) => {
                           const newAddons = [...addons];
@@ -508,7 +532,7 @@ export default function NewEventPage() {
                     </div>
                   </div>
                   {addons.length > 1 && (
-                    <button onClick={() => removeAddon(index)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">
+                    <button onClick={() => removeAddon(index)} className="absolute top-4 right-4 text-gray-200 hover:text-red-500 transition-colors">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   )}
@@ -517,7 +541,7 @@ export default function NewEventPage() {
             </div>
           </section>
 
-          <footer className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40">
+          <footer className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-xl shadow-blue-50 sticky bottom-8 z-40 animate-in slide-in-from-bottom-4 duration-500">
              <button
               type="button"
               className="text-gray-400 font-black text-[10px] uppercase tracking-[0.3em] hover:text-blue-600 transition-all font-sans"
@@ -527,7 +551,7 @@ export default function NewEventPage() {
             <div className="flex gap-4">
               <button
                 type="button"
-                className="px-8 py-4 rounded-xl border border-gray-50 text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all font-sans"
+                className="px-8 py-4 rounded-xl border border-gray-100 text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all"
               >
                 Cancelar
               </button>
