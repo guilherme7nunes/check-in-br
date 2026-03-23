@@ -354,9 +354,7 @@ export default function NewEventPage() {
                            <button type="button" onClick={() => addCustomField(index)} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-widest">+ Criar Nova Informação</button>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                           {['Nome Completo', 'Email', 'Telefone'].map(f => (
-                             <span key={f} className="px-3 py-1.5 bg-slate-50 border border-slate-100 text-slate-400 text-[10px] font-bold rounded-lg uppercase tracking-tight opacity-70 italic">{f}</span>
-                           ))}
+                           <span className="px-3 py-1.5 bg-slate-50 border border-slate-100 text-slate-400 text-[10px] font-bold rounded-lg uppercase tracking-tight opacity-70 italic">Nome Completo (Mínimo)</span>
                            {ticket.customFields.map((f, fi) => (
                              <div key={fi} className="px-3 py-1.5 bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-bold rounded-lg uppercase tracking-tight flex items-center gap-2">
                                 {f.label}
