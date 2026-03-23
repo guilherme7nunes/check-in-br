@@ -71,7 +71,8 @@ export async function POST(req: Request) {
     console.error('ERRO AO CRIAR EVENTO:', error);
     return NextResponse.json({ 
       message: 'Erro ao salvar evento no banco de dados',
-      error: error.message 
+      error: error.message,
+      detail: error.code // Código do erro do Prisma para debug
     }, { status: 500 });
   }
 }

@@ -182,7 +182,7 @@ export default function NewEventPage() {
       alert('Evento de Elite Criado com Sucesso! 🏁');
       router.push('/dashboard');
     } catch (e: any) {
-      alert(`Houve um erro: ${e.message}`);
+      alert(`Houve um erro: ${e.message} (${e.detail || e.error || 'Erro desconhecido'})`);
     } finally {
       setLoading(false);
     }
