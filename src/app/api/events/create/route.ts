@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ message: 'Sessão expirada. Refaça o login.' }, { status: 401 });
     }
 
     const userId = (session.user as any).id;
@@ -17,48 +17,49 @@ export async function POST(req: Request) {
       location, locationType, image, ticketTypes 
     } = body;
 
-    if (!title || !startDate || !ticketTypes || ticketTypes.length === 0) {
-      return NextResponse.json({ message: 'Campos obrigatórios ausentes.' }, { status: 400 });
+    // Validações Básicas
+    if (!title) return NextResponse.json({ message: 'Título é obrigatório' }, { status: 400 });
+    if (!startDate) return NextResponse.json({ message: 'Data de início é obrigatória' }, { status: 400 });
+    if (!ticketTypes || ticketTypes.length === 0) return NextResponse.json({ message: 'Crie ao menos um ingresso' }, { status: 400 });
+
+    const startDateObj = new Date(startDate);
+    if (isNaN(startDateObj.getTime())) {
+      return NextResponse.json({ message: 'Formato de data inválido' }, { status: 400 });
     }
 
     // Criar Evento e suas Sub-estruturas em uma Transação
     const newEvent = await prisma.event.create({
       data: {
         title,
-        description,
-        schedule,
-        date: new Date(startDate),
+        description: description || '',
+        schedule: schedule || '',
+        date: startDateObj,
         endDate: endDate ? new Date(endDate) : null,
         showTimes: showTimes !== undefined ? showTimes : true,
-        location,
-        locationType,
-        image,
+        location: location || 'Presencial',
+        locationType: locationType || 'PHYSICAL',
+        image: image || null,
         organizerId: userId,
         ticketTypes: {
           create: ticketTypes.map((t: any) => ({
             name: t.name,
-            price: parseFloat(t.price) || 0,
+            price: Number(t.price) || 0,
             description: t.description || '',
-            capacity: parseInt(t.capacity) || null,
+            capacity: t.capacity ? parseInt(t.capacity) : null,
             groupSize: parseInt(t.groupSize) || 1,
             isGroup: (parseInt(t.groupSize) || 1) > 1,
             customFields: t.customFields || [],
           }))
         },
-        // Complementos (Addons) mapeados do JSON do evento
         addons: {
           create: ticketTypes.flatMap((t: any) => 
             (t.addons || []).map((a: any) => ({
               name: a.name,
-              price: parseFloat(a.price) || 0,
+              price: Number(a.price) || 0,
               category: 'OTHER'
             }))
           )
         }
-      },
-      include: {
-        ticketTypes: true,
-        addons: true
       }
     });
 
@@ -68,11 +69,17 @@ export async function POST(req: Request) {
     }, { status: 201 });
 
   } catch (error: any) {
-    console.error('ERRO AO CRIAR EVENTO:', error);
+    console.error('DETALHE DO ERRO NO SERVIDOR:', error);
+    
+    // Captura erros específicos do Prisma
+    let friendlyMessage = 'Erro interno ao salvar no banco';
+    if (error.code === 'P2002') friendlyMessage = 'Já existe um registro com estes dados.';
+    if (error.code === 'P2003') friendlyMessage = 'Erro de vínculo (Chave estrangeira).';
+    
     return NextResponse.json({ 
-      message: 'Erro ao salvar evento no banco de dados',
-      error: error.message,
-      detail: error.code // Código do erro do Prisma para debug
+      message: friendlyMessage,
+      error: error.message || String(error),
+      code: error.code || 'UNKNOWN'
     }, { status: 500 });
   }
 }
