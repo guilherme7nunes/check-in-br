@@ -157,13 +157,35 @@ export default function NewEventPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (ticketTypes.length === 0) {
+      alert('Crie ao menos um tipo de ingresso para o evento.');
+      return;
+    }
+    
     setLoading(true);
-    // TODO: Integração com Backend/Prisma real
-    setTimeout(() => {
-      setLoading(false);
-      alert('Evento de Elite Criado com Sucesso!');
+    try {
+      const resp = await fetch('/api/events/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...eventData,
+          ticketTypes
+        }),
+      });
+
+      if (!resp.ok) {
+        const errorData = await resp.json();
+        throw new Error(errorData.message || 'Erro ao criar evento');
+      }
+
+      const data = await resp.json();
+      alert('Evento de Elite Criado com Sucesso! 🏁');
       router.push('/dashboard');
-    }, 1500);
+    } catch (e: any) {
+      alert(`Houve um erro: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
