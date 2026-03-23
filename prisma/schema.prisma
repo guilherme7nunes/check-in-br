@@ -139,9 +139,22 @@ model Ticket {
   ticketType    TicketType @relation(fields: [ticketTypeId], references: [id])
   
   addons        TicketAddon[]
+  checkIns      CheckInLog[]
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model CheckInLog {
+  id           String   @id @default(cuid())
+  ticketId     String
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+  
+  activityType String   // e.g., "GENERAL_ENTRANCE", "ADDON:clz123..."
+  
+  checkedAt    DateTime @default(now())
+  
+  @@unique([ticketId, activityType])
 }
 
 model TicketAddon {
